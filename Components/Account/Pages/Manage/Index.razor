@@ -1,0 +1,110 @@
+﻿@page "/Account/Manage"
+
+@using System.ComponentModel.DataAnnotations
+@using Microsoft.AspNetCore.Identity
+@using BlogApp.Data
+
+@inject UserManager<ApplicationUser> UserManager
+@inject SignInManager<ApplicationUser> SignInManager
+@inject IdentityUserAccessor UserAccessor
+@inject IdentityRedirectManager RedirectManager
+
+<PageTitle>Perfil de Usuario</PageTitle>
+
+<div class="container my-5">
+
+    <h3 class="mb-4">Gestionar tu Perfil</h3>
+    <StatusMessage />
+
+    <div class="card shadow-lg border-0">
+        <div class="card-body p-4">
+
+            <div class="row">
+                <div class="col-md-6 border-end">
+
+                    <h5 class="card-title mb-4 fw-bold">Información de la Cuenta</h5>
+
+                    <EditForm Model="Input" FormName="profile" OnValidSubmit="OnValidSubmitAsync" method="post">
+                        <DataAnnotationsValidator />
+                        <ValidationSummary class="text-danger" role="alert" />
+
+                        <div class="mb-3">
+                            <label for="username" class="form-label fw-semibold">Nombre de Usuario</label>
+                            <input type="text" value="@username" class="form-control" readonly />
+                        </div>
+
+                        <div class="form-floating mb-3">
+                            <InputText @bind-Value="Input.PhoneNumber" class="form-control" placeholder="Ingresa tu número de teléfono." />
+                            <label for="phone-number" class="form-label">Número de Teléfono</label>
+                            <ValidationMessage For="() => Input.PhoneNumber" class="text-danger" />
+                        </div>
+
+                        <button type="submit" class="w-100 btn btn-lg btn-primary mt-3">Guardar Cambios</button>
+                    </EditForm>
+                </div>
+
+                <div class="col-md-5 offset-md-1">
+                    <h5 class="card-title mb-4 fw-bold">Detalles Adicionales</h5>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold">Roles Asignados</label>
+                        <div class="p-2 border rounded bg-light">
+                            <span class="text-primary">
+                                @(string.Join(", ", CurrentRoles.Any() ? CurrentRoles : new List<string> { "Usuario Común" }))
+                            </span>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@code {
+    private ApplicationUser user = default!;
+    private string? username;
+    private string? phoneNumber;
+    private IList<string> CurrentRoles = new List<string>(); // Estado para almacenar los roles
+
+    [CascadingParameter]
+    private HttpContext HttpContext { get; set; } = default!;
+
+    [SupplyParameterFromForm]
+    private InputModel Input { get; set; } = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        user = await UserAccessor.GetRequiredUserAsync(HttpContext);
+        username = await UserManager.GetUserNameAsync(user);
+        phoneNumber = await UserManager.GetPhoneNumberAsync(user);
+
+        // ⬇️ LÓGICA AGREGADA: Obtener Roles del Usuario ⬇️
+        CurrentRoles = await UserManager.GetRolesAsync(user);
+
+        Input.PhoneNumber ??= phoneNumber;
+    }
+
+    private async Task OnValidSubmitAsync()
+    {
+        if (Input.PhoneNumber != phoneNumber)
+        {
+            var setPhoneResult = await UserManager.SetPhoneNumberAsync(user, Input.PhoneNumber);
+            if (!setPhoneResult.Succeeded)
+            {
+                RedirectManager.RedirectToCurrentPageWithStatus("Error: Failed to set phone number.", HttpContext);
+            }
+        }
+
+        await SignInManager.RefreshSignInAsync(user);
+        RedirectManager.RedirectToCurrentPageWithStatus("Your profile has been updated", HttpContext);
+    }
+
+    private sealed class InputModel
+    {
+        [Phone(ErrorMessage = "El formato del número de teléfono no es válido.")]
+        [Display(Name = "Número de Teléfono")]
+        public string? PhoneNumber { get; set; }
+    }
+}

@@ -1,0 +1,120 @@
+﻿@page "/my-posts"
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize]
+@rendermode InteractiveServer
+@using BlogApp.Entidades
+@using BlogApp.Components
+
+@inject BlogApp.Services.BlogService _blogService
+@inject IJSRuntime JSRuntime
+@inject NavigationManager NavigationManager
+
+<PageTitle>Mis Publicaciones</PageTitle>
+
+<h1>Gestionar Mis Publicaciones</h1>
+
+
+<div class="text-end mb-3">
+    <a href="/edit-post" class="btn btn-primary">
+        + Agregar Nuevo Blog
+    </a>
+</div>
+
+@if (_userPosts == null)
+{
+    <p><em>Cargando tus publicaciones...</em></p>
+}
+else if (!_userPosts.Any())
+{
+    <p><em>No has creado ninguna publicación todavía. <a href="/edit-post">¡Crea la primera!</a></em></p>
+}
+else
+{
+    <table class="table table-striped table-hover">
+        <thead class="table-dark">
+            <tr>
+                <th>Título</th>
+                <th>Estado</th>
+                <th>Fecha de Creación</th>
+                <th style="width: 180px;">Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var post in _userPosts)
+            {
+                <tr>
+                    <td>@post.Title</td>
+                    <td>@(post.IsPublished ? "Publicado" : "Borrador")</td>
+                    <td>@post.CreatedOn.ToShortDateString()</td>
+                   
+                    <td class="d-flex align-items-center gap-2">
+                        <a href="/edit-post/@post.Id" class="btn btn-sm btn-info">Editar</a>
+
+                        <button class="btn btn-sm btn-danger" @onclick="() => OpenConfirmationModal(post.Id, post.Title)">Eliminar</button>
+                    </td>
+                  
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+<ConfirmationModal ShowModal="_showConfirmModal"
+                   Title="Confirmar Eliminación"
+                   Message="@_modalMessage"
+                   ConfirmText="Sí, Eliminar"
+                   OnConfirmation="HandleDeleteConfirmation" />
+
+
+@code {
+    private List<BlogApp.Entidades.BlogPost>? _userPosts;
+
+    private bool _showConfirmModal;
+    private string _modalMessage = "";
+    private int _postIdToDelete = 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _userPosts = await _blogService.GetPostsByUserAsync();
+    }
+
+    private void OpenConfirmationModal(int postId, string postTitle)
+    {
+        _postIdToDelete = postId;
+        _modalMessage = $"¿Estás seguro de que quieres eliminar la publicación '{postTitle}'?";
+        _showConfirmModal = true;
+    }
+
+    private async Task HandleDeleteConfirmation(bool confirmed)
+    {
+        _showConfirmModal = false;
+
+        if (confirmed && _postIdToDelete > 0)
+        {
+            await DeletePost(_postIdToDelete);
+            _postIdToDelete = 0;
+        }
+    }
+
+    private async Task DeletePost(int postId)
+    {
+        try
+        {
+            var success = await _blogService.DeletePostAsync(postId);
+
+            if (success)
+            {
+                _userPosts?.RemoveAll(p => p.Id == postId);
+                StateHasChanged();
+            }
+            else
+            {
+                await JSRuntime.InvokeVoidAsync("alert", "Error al eliminar. Verifique sus permisos.");
+            }
+        }
+        catch (Exception ex)
+        {
+            await JSRuntime.InvokeVoidAsync("alert", $"Ocurrió un error: {ex.Message}");
+        }
+    }
+}

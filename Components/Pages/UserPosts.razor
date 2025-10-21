@@ -1,0 +1,150 @@
+﻿@page "/admin/posts/{UserId}"
+@using BlogApp.Entidades
+@using BlogApp.Data
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize(Roles = "Admin")]
+@rendermode InteractiveServer
+@using BlogApp.Components 
+
+@inject BlogApp.Services.BlogService _blogService
+@inject IJSRuntime JSRuntime
+@inject NavigationManager NavigationManager
+
+<PageTitle>Posts de Usuario</PageTitle>
+
+@if (_user == null)
+{
+    <h1>Cargando Posts de Moderación...</h1>
+    <p><em>Buscando usuario...</em></p>
+}
+else
+{
+    <h1>Posts de: @(_user.UserName)</h1>
+    <p>Herramienta para moderar el contenido de este usuario.</p>
+
+    <a href="/admin/users" class="btn btn-secondary mb-3">
+        &larr; Volver a Gestión de Usuarios
+    </a>
+
+    @if (_userPosts == null)
+    {
+        <p>Cargando posts...</p>
+    }
+    else if (!_userPosts.Any())
+    {
+        <div class="alert alert-info">Este usuario no tiene posts.</div>
+    }
+    else
+    {
+        <table class="table table-striped table-hover">
+            <thead class="table-dark">
+                <tr>
+                    <th>ID</th>
+                    <th>Título</th>
+                    <th>Fecha de Creación</th>
+                    <th>Acción</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var post in _userPosts)
+                {
+                    <tr>
+                        <td>@post.Id</td>
+                        <td>
+                            <a href="/postid/@post.Id">@post.Title</a>
+                        </td>
+                        <td>@post.CreatedOn.ToShortDateString()</td>
+                        <td>
+                           
+                            <button class="btn btn-sm btn-danger" @onclick="() => OpenConfirmationModal(post.Id, post.Title)">
+                                Eliminar Post
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+}
+
+
+<ConfirmationModal ShowModal="_showConfirmModal"
+                   Title="@_modalTitle"
+                   Message="@_modalMessage"
+                   ConfirmText="Sí, Eliminar Post"
+                   OnConfirmation="HandleDeleteConfirmation" />
+
+
+@code {
+    [Parameter]
+    public string UserId { get; set; } = string.Empty;
+
+    private List<BlogPost>? _userPosts;
+    private ApplicationUser? _user;
+
+  
+    private bool _showConfirmModal;
+    private string _modalTitle = "";
+    private string _modalMessage = "";
+    private int _postIdToDelete = 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!string.IsNullOrEmpty(UserId))
+        {
+           
+            _user = await _blogService.GetUserByIdAsync(UserId);
+
+            if (_user == null)
+            {
+                NavigationManager.NavigateTo("/admin/users");
+                return;
+            }
+
+            _userPosts = await _blogService.GetPostsByUserIdAsync(UserId);
+        }
+    }
+
+   
+    private void OpenConfirmationModal(int postId, string postTitle)
+    {
+        _postIdToDelete = postId;
+        _modalTitle = $"Confirmar Eliminación de Post";
+        _modalMessage = $"¿Estás seguro de que quieres ELIMINAR PERMANENTEMENTE el post: '{postTitle}'?";
+        _showConfirmModal = true;
+    }
+
+    private async Task HandleDeleteConfirmation(bool confirmed)
+    {
+        _showConfirmModal = false;
+
+        if (confirmed && _postIdToDelete > 0)
+        {
+            await DeletePost(_postIdToDelete);
+            _postIdToDelete = 0;
+        }
+    }
+
+    private async Task DeletePost(int postId)
+    {
+        try
+        {
+            var success = await _blogService.DeletePostByIdAsync(postId);
+
+            if (success)
+            {
+                _userPosts!.RemoveAll(p => p.Id == postId);
+                StateHasChanged();
+                await JSRuntime.InvokeVoidAsync("alert", "Post eliminado con éxito.");
+            }
+            else
+            {
+                await JSRuntime.InvokeVoidAsync("alert", "Error: No se encontró el post para eliminar.");
+            }
+        }
+        catch (Exception ex)
+        {
+            await JSRuntime.InvokeVoidAsync("alert", $"Ocurrió un error al eliminar: {ex.Message}");
+        }
+    }
+}

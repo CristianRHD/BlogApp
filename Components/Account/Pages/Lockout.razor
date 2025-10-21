@@ -1,0 +1,22 @@
+﻿@page "/Account/Logout"
+@using Microsoft.AspNetCore.Authentication
+@using Microsoft.AspNetCore.Identity
+@using BlogApp.Data
+@using Microsoft.EntityFrameworkCore.Metadata.Internal
+@inject SignInManager<ApplicationUser> SignInManager
+@inject NavigationManager Navigation
+
+
+
+
+<h3>Cerrar sesion</h3>
+@code{
+
+	protected override async Task OnInitializedAsync()
+	{
+
+		await SignInManager.SignOutAsync();
+		Navigation.NavigateTo("/Account/Login",true);
+	}
+}
+

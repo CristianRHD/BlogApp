@@ -1,0 +1,54 @@
+@using Microsoft.AspNetCore.Authorization
+@using BlogApp.Components.Account.Shared
+
+<header class="bg-dark shadow-sm">
+    <div class="container">
+        <nav class="navbar navbar-expand-lg navbar-dark py-3">
+
+            <a class="navbar-brand fw-bold fs-4 me-5" href="/">Zona Esencial</a>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarNav">
+
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <NavLink class="nav-link px-3" href="/" Match="NavLinkMatch.All">Home</NavLink>
+                    </li>
+                    <li class="nav-item">
+                        <NavLink class="nav-link px-3" href="/about">Acerca de</NavLink>
+                    </li>
+                </ul>
+
+                <ul class="navbar-nav mx-auto">
+                    <AuthorizeView>
+                        <Authorized>
+                            <li class="nav-item">
+                                <NavLink class="nav-link px-3" href="/my-posts">Blogs</NavLink>
+                            </li>
+                            <li class="nav-item">
+                                <NavLink class="nav-link px-3" href="/manage-categories">Categorías</NavLink>
+                            </li>
+                        </Authorized>
+                    </AuthorizeView>
+                </ul>
+
+                <AuthorizeView Roles="Admin">
+                    <Authorized>
+                        <ul class="navbar-nav me-3">
+                            <li class="nav-item">
+                                <NavLink class="nav-link fw-semibold px-3" style="color: var(--accent-gold);" href="/admin/users">Moderar Usuarios</NavLink>
+                            </li>
+                        </ul>
+                    </Authorized>
+                </AuthorizeView>
+
+                <div class="ms-auto">
+                    <LoginDisplay />
+                </div>
+            </div>
+        </nav>
+    </div>
+</header>

@@ -1,0 +1,234 @@
+﻿@page "/edit-post"
+@page "/edit-post/{PostId:int}"
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.EntityFrameworkCore
+@attribute [Authorize]
+@rendermode InteractiveServer
+
+@inject BlogApp.Services.BlogService _blogService
+@inject BlogApp.Services.FileService _fileService
+@inject NavigationManager _navigationManager
+
+<h3>@(PostId.HasValue ? "Editar Publicación" : "Crear Nueva Publicación")</h3>
+<hr class="mb-4" />
+
+@if (_postModel != null && _categories != null)
+{
+    <EditForm Model="@_postModel" OnValidSubmit="HandleValidSubmit" FormName="PostEditor">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        @if (!string.IsNullOrEmpty(_saveErrorMessage))
+        {
+            <div class="alert alert-danger">
+                @_saveErrorMessage
+            </div>
+        }
+
+        <div class="card p-4 shadow-sm mb-4">
+            <h5 class="mb-3 text-primary">Información Básica</h5>
+
+            <div class="mb-3">
+                <label for="title" class="form-label">Título</label>
+                <InputText id="title" class="form-control" @bind-Value="_postModel.Title" />
+            </div>
+
+            <div class="mb-3">
+                <label for="slug" class="form-label">Slug (URL amigable)</label>
+                <InputText id="slug" class="form-control" @bind-Value="_postModel.Slug" />
+            </div>
+
+            <div class="mb-3">
+                <label for="featuredImage" class="form-label fw-bold">Imagen Destacada (Máx 5MB)</label>
+                <InputFile id="featuredImage" OnChange="HandleFileSelection" class="form-control" />
+
+                @if (!string.IsNullOrEmpty(fileUploadError))
+                {
+                    <div class="text-danger mt-2">@fileUploadError</div>
+                }
+
+                @if (PostId.HasValue && _postModel.FeaturedImageId.HasValue && _postModel.FeaturedImage?.FilePath != null)
+                {
+                    <p class="text-muted mt-2">Imagen actual:</p>
+                    <img src="@_postModel.FeaturedImage.FilePath" class="img-thumbnail" style="max-height: 120px;" alt="Imagen destacada actual" />
+                }
+            </div>
+        </div>
+
+        <div class="card p-4 shadow-sm mb-4">
+            <h5 class="mb-3 text-primary">Contenido y Categoría</h5>
+
+            <div class="mb-3">
+                <label for="category" class="form-label">Categoría</label>
+                @if (_categories.Any())
+                {
+                    <InputSelect id="category" class="form-select" @bind-Value="SelectedCategoryIdString">
+                        <option value="">-- Selecciona una Categoría --</option>
+                        @foreach (var category in _categories)
+                        {
+                            <option value="@category.Id">@category.Name</option>
+                        }
+                    </InputSelect>
+                }
+                else
+                {
+                    <p class="text-danger">No hay categorías disponibles. Por favor, <a href="/manage-categories">crea una categoría</a> primero.</p>
+                }
+            </div>
+
+
+            <div class="mb-3">
+                <label for="introduction" class="form-label">Introducción</label>
+                <InputTextArea id="introduction" class="form-control" @bind-Value="_postModel.Introduction" />
+            </div>
+
+            <div class="mb-3">
+                <label for="content" class="form-label">Contenido</label>
+                <InputTextArea id="content" class="form-control" rows="10" @bind-Value="_postModel.Content" />
+            </div>
+        </div>
+
+
+        <div class="d-flex justify-content-between align-items-center">
+
+            <div class="form-check">
+                <InputCheckbox id="isPublished" class="form-check-input" @bind-Value="_postModel.IsPublished" />
+                <label for="isPublished" class="form-check-label">Publicar ahora</label>
+            </div>
+
+            <div class="d-flex">
+                <button type="submit" class="btn btn-primary me-2" disabled="@(!_categories.Any())">Guardar</button>
+                <a href="/my-posts" class="btn btn-secondary">Cancelar</a>
+            </div>
+        </div>
+
+    </EditForm>
+}
+else
+{
+    <p><em>Cargando...</em></p>
+}
+
+
+@code {
+    [Parameter]
+    public System.Nullable<int> PostId { get; set; }
+
+    private BlogApp.Entidades.BlogPost? _postModel;
+    private List<BlogApp.Entidades.Categoria>? _categories;
+
+    private IBrowserFile? selectedFile;
+    private string? fileUploadError;
+    private string _saveErrorMessage = "";
+
+    private string SelectedCategoryIdString { get; set; } = string.Empty;
+
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _categories = await _blogService.GetCategoriesAsync();
+
+        if (PostId.HasValue)
+        {
+            _postModel = await _blogService.GetPostForEditAsync(PostId.Value);
+        }
+        else
+        {
+            _postModel = new BlogApp.Entidades.BlogPost
+            {
+                Title = string.Empty,
+                Slug = string.Empty,
+                Introduction = string.Empty,
+                Content = string.Empty,
+                UserId = string.Empty,
+                CategoryId = null
+            };
+        }
+
+        if (_postModel?.CategoryId.HasValue == true)
+        {
+            SelectedCategoryIdString = _postModel.CategoryId.Value.ToString();
+        }
+        else
+        {
+            SelectedCategoryIdString = string.Empty;
+        }
+    }
+
+    private void HandleFileSelection(InputFileChangeEventArgs e)
+    {
+        selectedFile = e.File;
+        fileUploadError = null;
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        if (_postModel == null) return;
+        _saveErrorMessage = "";
+
+        if (int.TryParse(SelectedCategoryIdString, out int selectedId) && selectedId > 0)
+        {
+            _postModel.CategoryId = selectedId;
+        }
+        else
+        {
+            _postModel.CategoryId = null;
+        }
+
+        if (!_postModel.CategoryId.HasValue)
+        {
+            return;
+        }
+
+        if (selectedFile != null)
+        {
+            try
+            {
+                var mediaFile = await _fileService.SaveFileAsync(selectedFile);
+                _postModel.FeaturedImageId = mediaFile.Id;
+                _postModel.FeaturedImage = mediaFile;
+            }
+            catch (InvalidOperationException ex)
+            {
+                fileUploadError = ex.Message;
+                return;
+            }
+            catch (Exception)
+            {
+                fileUploadError = "Ocurrió un error al subir el archivo.";
+                return;
+            }
+        }
+
+        try
+        {
+            if (PostId.HasValue)
+            {
+                await _blogService.UpdatePostAsync(_postModel);
+            }
+            else
+            {
+                await _blogService.CreatePostAsync(_postModel);
+            }
+        }
+        catch (Microsoft.EntityFrameworkCore.DbUpdateException ex)
+        {
+            if (ex.InnerException?.Message?.Contains("duplicate key") == true || ex.InnerException?.Message?.Contains("unique index") == true)
+            {
+                _saveErrorMessage = "Error: El Slug (URL amigable) proporcionado ya existe. Por favor, elige uno diferente.";
+                return;
+            }
+            _saveErrorMessage = "Error de base de datos al guardar la publicación.";
+            return;
+        }
+        catch (Exception ex)
+        {
+            _saveErrorMessage = $"Error inesperado: {ex.Message}";
+            return;
+        }
+
+
+        _navigationManager.NavigateTo("/my-posts");
+    }
+}

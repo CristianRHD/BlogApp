@@ -1,0 +1,24 @@
+﻿@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.AspNetCore.Identity
+@using BlogApp.Data
+
+@inject SignInManager<ApplicationUser> SignInManager
+@inject NavigationManager Navigation
+
+<div class="ms-auto">
+    <AuthorizeView>
+        <Authorized>
+            <div class="d-flex align-items-center">
+                <a href="Account/Manage" class="nav-link text-white">Hola, @context.User.Identity?.Name!</a>
+
+				<a href="Account/Logout" class="nav-link text-white ms-2">Cerrar sesión</a>
+            </div>
+        </Authorized>
+        <NotAuthorized>
+            <div class="d-flex align-items-center">
+                <a href="Account/Register" class="nav-link text-white">Registrarse</a>
+                <a href="Account/Login" class="nav-link text-white ms-2">Iniciar sesión</a>
+            </div>
+        </NotAuthorized>
+    </AuthorizeView>
+</div>

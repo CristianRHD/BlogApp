@@ -1,0 +1,81 @@
+﻿@page "/post/{Slug}"
+@page "/postid/{PostId:int}"
+@inject BlogApp.Services.BlogService _blogService
+
+<PageTitle>@(_post?.Title ?? "Cargando...")</PageTitle>
+
+@if (_post == null)
+{
+    <p class="text-center mt-5"><em>Cargando publicación...</em></p>
+}
+else
+{
+    <div class="container my-5">
+        <div class="row justify-content-center">
+
+            <div class="col-12 col-md-10 col-lg-8 article-container">
+
+                @if (_post.FeaturedImage?.FilePath != null)
+                {
+                    <div class="mb-5">
+                        <img src="@_post.FeaturedImage.FilePath"
+                             class="w-100 rounded shadow-lg post-featured-image detail-view"
+                             alt="@_post.Title" />
+                    </div>
+                }
+
+                <h1 class="display-5 fw-bold mb-4">@_post.Title</h1>
+
+            
+                <div class="d-flex justify-content-start align-items-center mb-5 text-muted small border-bottom pb-3">
+                    <span class="me-4">
+                        Por **@(_post.Usuario?.UserName ?? "Desconocido")**
+                    </span>
+                    <span class="me-4">
+                        Publicado el @_post.PublishedOn?.ToLongDateString()
+                    </span>
+                    @if (_post.Categoria != null)
+                    {
+                        <a href="@($"/category/{_post.Categoria.Slug}")" class="badge text-bg-primary text-decoration-none">@_post.Categoria.Name</a>
+                    }
+                </div>
+
+               
+                <div class="post-content fs-5 mb-5">
+                    @((MarkupString)_post.Content.ReplaceLineEndings("<br/><br/>"))
+                </div>
+
+                <hr class="my-5" />
+
+               
+                @if (_post.Id > 0)
+                {
+                    <PostComments BlogPostId="_post.Id" />
+                }
+
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public string? Slug { get; set; }
+
+    [Parameter]
+    public int? PostId { get; set; }
+
+    private BlogApp.Entidades.BlogPost? _post;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (PostId.HasValue)
+        {
+            _post = await _blogService.GetPostByIdAsync(PostId.Value);
+        }
+        else if (!string.IsNullOrEmpty(Slug))
+        {
+            _post = await _blogService.GetPostBySlugAsync(Slug);
+        }
+    }
+}

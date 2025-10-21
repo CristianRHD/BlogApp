@@ -1,0 +1,238 @@
+﻿@using BlogApp.Entidades
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Forms
+@using System.Security.Claims
+@using BlogApp.Components 
+@rendermode InteractiveServer
+
+@inject BlogApp.Services.BlogService _blogService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IJSRuntime JSRuntime
+
+<h3 class="mt-5 mb-3 border-bottom pb-2">Comentarios (@CommentCount)</h3>
+
+<AuthorizeView Context="authContext">
+    <Authorized>
+        <div class="card mb-4 shadow-lg">
+            <div class="card-body">
+                <h5 class="card-title">Dejar un comentario:</h5>
+                <EditForm Model="NewComment" OnValidSubmit="HandleSubmitComment">
+                    <DataAnnotationsValidator />
+                    <ValidationSummary />
+
+                    <div class="mb-3">
+                        <InputTextArea @bind-Value="NewComment.Content" class="form-control" rows="3" placeholder="Escribe tu comentario aquí..." required />
+                        <ValidationMessage For="() => NewComment.Content" />
+                    </div>
+
+                    <button type="submit" class="btn btn-sm btn-primary">Publicar Comentario</button>
+                </EditForm>
+            </div>
+        </div>
+    </Authorized>
+    <NotAuthorized>
+        <div class="alert alert-info text-center">
+            Debes <a href="/Account/Login">iniciar sesión</a> para dejar un comentario.
+        </div>
+    </NotAuthorized>
+</AuthorizeView>
+
+@if (_comments == null)
+{
+    <p><em>Cargando comentarios...</em></p>
+}
+else if (!_comments.Any())
+{
+    <p class="text-muted">Sé el primero en comentar.</p>
+}
+else
+{
+    <div class="comments-list">
+        @foreach (var comment in _comments)
+        {
+            <div class="comment-item mb-3 p-3 bg-white border rounded">
+                
+                @if (comment.Id == _editingCommentId)
+                {
+                    <EditForm Model="@_editedCommentModel" OnValidSubmit="SaveEditedComment">
+                        <InputTextArea @bind-Value="_editedCommentModel.Content" class="form-control mb-2" rows="3" />
+                        <button type="submit" class="btn btn-sm btn-success me-2">Guardar</button>
+                        <button type="button" class="btn btn-sm btn-secondary" @onclick="CancelEdit">Cancelar</button>
+                    </EditForm>
+                }
+                else
+                {
+                    <div class="d-flex justify-content-between small">
+                        <span class="fw-bold text-primary">@comment.Usuario?.UserName</span>
+                        <span class="text-muted">
+                            @comment.CreatedOn.ToShortDateString()
+                            @if (comment.ModifiedOn.HasValue)
+                            {
+                                <span> (Editado)</span>
+                            }
+                        </span>
+                    </div>
+                    <p class="mt-2 mb-2">@comment.Content</p>
+
+                    <AuthorizeView Context="auth">
+                        @if (comment.UserId == _currentUserId || auth.User.IsInRole("Admin")) 
+                        {
+                            <hr class="my-1"/>
+                            @if (comment.UserId == _currentUserId)
+                            {
+                                <button class="btn btn-link btn-sm p-0 me-2" @onclick="() => StartEdit(comment)">Editar</button>
+                            }
+                            <button class="btn btn-link btn-sm text-danger p-0" @onclick="() => OpenConfirmationModal(comment.Id, comment.Usuario?.UserName)">Eliminar</button>
+                        }
+                    </AuthorizeView>
+                }
+            </div>
+        }
+    </div>
+}
+
+
+<ConfirmationModal ShowModal="_showConfirmModal"
+                   Title="Confirmar Eliminación"
+                   Message="@_modalMessage"
+                   ConfirmText="Sí, Eliminar"
+                   OnConfirmation="HandleDeleteConfirmation" />
+
+@code {
+    [Parameter]
+    public int BlogPostId { get; set; }
+
+    private List<Comentario>? _comments;
+    private Comentario NewComment { get; set; } = new Comentario { Content = string.Empty, UserId = string.Empty };
+    
+    private string? _currentUserId;
+    private int _editingCommentId = 0; 
+    private Comentario _editedCommentModel { get; set; } = new Comentario { Content = string.Empty, UserId = string.Empty };
+    
+    private bool _showConfirmModal;
+    private string _modalMessage = "";
+    private int _commentIdToDelete = 0; 
+    private int CommentCount => _comments?.Count ?? 0; 
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        _comments = await _blogService.GetCommentsByPostIdAsync(BlogPostId);
+
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        _currentUserId = authState.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        var userId = authState.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        if (userId != null)
+        {
+            NewComment.UserId = userId;
+        }
+    }
+
+    private async Task HandleSubmitComment()
+    {
+        if (string.IsNullOrWhiteSpace(NewComment.Content)) return;
+
+        NewComment.BlogPostId = BlogPostId;
+
+        try
+        {
+            var addedComment = await _blogService.AddCommentAsync(NewComment);
+
+            if (_comments != null)
+            {
+                _comments.Add(addedComment);
+            }
+
+            NewComment = new Comentario { UserId = NewComment.UserId, BlogPostId = BlogPostId, Content = string.Empty };
+            StateHasChanged();
+        }
+        catch (InvalidOperationException)
+        {
+            
+        }
+    }
+
+    private void StartEdit(Comentario comment)
+    {
+        if (comment.UserId != _currentUserId) return; 
+
+        _editedCommentModel = new Comentario 
+        {
+            Id = comment.Id,
+            Content = comment.Content,
+            UserId = comment.UserId,
+            BlogPostId = comment.BlogPostId
+        };
+        _editingCommentId = comment.Id;
+    }
+
+    private void CancelEdit()
+    {
+        _editingCommentId = 0;
+    }
+    
+    private async Task SaveEditedComment()
+    {
+        try
+        {
+            var savedComment = await _blogService.UpdateCommentAsync(_editedCommentModel, _currentUserId!);
+            
+            var index = _comments!.FindIndex(c => c.Id == savedComment.Id);
+            if (index != -1)
+            {
+                _comments[index] = savedComment;
+            }
+            
+            CancelEdit();
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            await JSRuntime.InvokeVoidAsync("alert", ex.Message);
+        }
+        catch (Exception ex)
+        {
+            await JSRuntime.InvokeVoidAsync("alert", $"Error al guardar la edición: {ex.Message}");
+        }
+    }
+
+    private void OpenConfirmationModal(int commentId, string? username)
+    {
+        _commentIdToDelete = commentId;
+        _modalMessage = $"¿Estás seguro de que quieres eliminar el comentario de '{username}'?";
+        _showConfirmModal = true;
+    }
+
+    private async Task HandleDeleteConfirmation(bool confirmed)
+    {
+        _showConfirmModal = false;
+
+        if (confirmed && _commentIdToDelete > 0)
+        {
+            await DeleteComment(_commentIdToDelete);
+            _commentIdToDelete = 0;
+        }
+    }
+
+    private async Task DeleteComment(int commentId)
+    {
+        try
+        {
+            var success = await _blogService.DeleteCommentAsync(commentId, _currentUserId!); 
+            
+            if (success)
+            {
+                _comments!.RemoveAll(c => c.Id == commentId);
+                StateHasChanged();
+            }
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            await JSRuntime.InvokeVoidAsync("alert", ex.Message);
+        }
+        catch (Exception ex)
+        {
+            await JSRuntime.InvokeVoidAsync("alert", $"Error al eliminar: {ex.Message}");
+        }
+    }
+}

@@ -1,0 +1,122 @@
+﻿@page "/admin/posts"
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize(Roles = "Admin")]
+@rendermode InteractiveServer
+@using BlogApp.Services
+@using BlogApp.Components
+@using BlogApp.Entidades
+
+@inject BlogApp.Services.BlogService _blogService
+@inject IJSRuntime JSRuntime
+@inject NavigationManager NavigationManager
+
+<PageTitle>Moderar Publicaciones</PageTitle>
+
+<h1>Moderar Todas las Publicaciones</h1>
+<p class="text-muted">Elimina cualquier publicación del sistema.</p>
+
+@if (_allPosts == null)
+{
+    <p><em>Cargando todas las publicaciones...</em></p>
+}
+else if (!_allPosts.Any())
+{
+    <p><em>No hay publicaciones en el sistema.</em></p>
+}
+else
+{
+    <table class="table table-striped table-hover">
+        <thead class="table-dark">
+            <tr>
+                <th>ID</th>
+                <th>Título</th>
+                <th>Autor</th>
+                <th>Estado</th>
+                <th style="width: 180px;">Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var post in _allPosts)
+            {
+                <tr>
+                    <td>@post.Id</td>
+                    <td>@post.Title</td>
+                    <td>@(post.Usuario?.UserName ?? "Desconocido")</td>
+                    <td>@(post.IsPublished ? "Publicado" : "Borrador")</td>
+                    <td class="d-flex align-items-center gap-2">
+                       
+                        <div class="btn-group">
+                            <a href="@($"/edit-post/{post.Id}")" class="btn btn-sm btn-info">Editar</a>
+                            <button class="btn btn-sm btn-danger" @onclick="() => OpenConfirmationModal(post.Id, post.Title)">
+                                Eliminar Post
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+<ConfirmationModal ShowModal="_showConfirmModal"
+                   Title="Confirmar Eliminación"
+                   Message="@_modalMessage"
+                   ConfirmText="Sí, Eliminar"
+                   OnConfirmation="HandleDeleteConfirmation" />
+
+@code {
+    private List<BlogApp.Entidades.BlogPost>? _allPosts;
+
+    private bool _showConfirmModal;
+    private string _modalMessage = "";
+    private int _postIdToDelete = 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _allPosts = await _blogService.GetAllPostsForAdminAsync();
+    }
+
+    private void OpenConfirmationModal(int postId, string postTitle)
+    {
+        _postIdToDelete = postId;
+        _modalMessage = $"¿Estás seguro de que quieres eliminar la publicación '{postTitle}' permanentemente?";
+        _showConfirmModal = true;
+    }
+
+    private async Task HandleDeleteConfirmation(bool confirmed)
+    {
+        _showConfirmModal = false;
+
+        if (confirmed && _postIdToDelete > 0)
+        {
+            await DeletePost(_postIdToDelete);
+            _postIdToDelete = 0;
+        }
+    }
+
+    private async Task DeletePost(int postId)
+    {
+        try
+        {
+            var success = await _blogService.DeletePostAsync(postId);
+
+            if (success)
+            {
+                _allPosts?.RemoveAll(p => p.Id == postId);
+                StateHasChanged();
+            }
+            else
+            {
+                await JSRuntime.InvokeVoidAsync("alert", "Error al eliminar. Verifique sus permisos.");
+            }
+        }
+        catch (UnauthorizedAccessException)
+        {
+            await JSRuntime.InvokeVoidAsync("alert", "Error: Acceso denegado.");
+        }
+        catch (Exception ex)
+        {
+            await JSRuntime.InvokeVoidAsync("alert", $"Ocurrió un error: {ex.Message}");
+        }
+    }
+}
