@@ -1,5 +1,5 @@
 ﻿@page "/"
-@page "/category/{CategorySlug}"
+@page "/category/{CategoryId:int}"
 @inject BlogApp.Services.BlogService _blogService
 
 <PageTitle>Zona Esencial - Blog</PageTitle>
@@ -26,8 +26,8 @@
         }
         else if (!_posts.Any())
         {
-
-            if (!string.IsNullOrEmpty(CategorySlug))
+            
+            @if (CategoryId.HasValue)
             {
                 <div class="alert alert-info">No hay ningún post relacionado con esta categoría.</div>
             }
@@ -41,19 +41,15 @@
             @foreach (var post in _posts)
             {
                 <div class="card post-card mb-4 card-divided">
-                    
+
                     <div class="card-body p-0">
-                       
 
-                        
                         <div class="row g-0">
-                            
 
-                           
                             <div class="col-md-4 post-image-wrapper">
                                 @if (post.FeaturedImage?.FilePath != null)
                                 {
-                                    <a href="@($"/post/{post.Slug}")">
+                                    <a href="@($"/post/{post.Id}")">
                                         <img src="@post.FeaturedImage.FilePath"
                                              class="w-100 post-featured-image list-view"
                                              alt="@post.Title" />
@@ -61,30 +57,28 @@
                                 }
                             </div>
 
-                          
+
                             <div class="col-md-8 d-flex flex-column p-4">
 
-                               
+
                                 <div class="d-flex justify-content-between align-items-center mb-1 text-muted small">
                                     <span>Por **@(post.Usuario?.UserName ?? "Desconocido")** el @(post.PublishedOn?.ToShortDateString() ?? post.CreatedOn.ToShortDateString())</span>
                                     @if (post.Categoria != null)
                                     {
-                                        <a href="@($"/category/{post.Categoria.Slug}")" class="badge text-bg-secondary text-decoration-none bg-opacity-75">@post.Categoria.Name</a>
+                                        <a href="@($"/category/{post.Categoria.Id}")" class="badge text-bg-secondary text-decoration-none bg-opacity-75">@post.Categoria.Name</a>
                                     }
                                 </div>
 
-                             
                                 <h2 class="card-title h3 mb-2">
-                                    <a href="@($"/post/{post.Slug}")" class="text-decoration-none">@post.Title</a>
+                                    <a href="@($"/post/{post.Id}")" class="text-decoration-none">@post.Title</a>
                                 </h2>
                                 <p class="card-text text-muted mb-3 flex-grow-1">@post.Introduction</p>
 
-                                
-                                <a href="@($"/post/{post.Slug}")" class="btn btn-sm btn-outline-primary mt-auto align-self-start">Leer Artículo</a>
+
+                                <a href="@($"/post/{post.Id}")" class="btn btn-sm btn-outline-primary mt-auto align-self-start">Leer Artículo</a>
                             </div>
 
                         </div>
-                        
 
                     </div>
                 </div>
@@ -92,7 +86,6 @@
         }
     </div>
 
-  
 
     <div class="col-md-4">
         <div class="card category-sidebar">
@@ -108,7 +101,7 @@
                         @foreach (var category in _categories)
                         {
                             <li class="list-group-item">
-                                <a href="@($"/category/{category.Slug}")">@category.Name</a>
+                                <a href="@($"/category/{category.Id}")">@category.Name</a>
                             </li>
                         }
                     </ul>
@@ -120,25 +113,23 @@
 
 @code {
     [Parameter]
-    public string? CategorySlug { get; set; }
+    public int? CategoryId { get; set; }
+
+    // ❌ ELIMINAR: public string? CategorySlug { get; set; }
 
     private List<BlogApp.Entidades.BlogPost>? _posts;
     private List<BlogApp.Entidades.Categoria>? _categories;
 
     protected override async Task OnParametersSetAsync()
     {
-
         _categories = await _blogService.GetCategoriesAsync();
 
-
-        if (!string.IsNullOrEmpty(CategorySlug))
+        if (CategoryId.HasValue)
         {
-
-            _posts = await _blogService.GetPublishedPostsByCategoryAsync(CategorySlug);
+            _posts = await _blogService.GetPublishedPostsByCategoryAsync(CategoryId.Value);
         }
         else
         {
-
             _posts = await _blogService.GetPublishedPostsAsync();
         }
     }

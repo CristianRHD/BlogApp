@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations;
 namespace BlogApp.Entidades
 {
 
-    [Index(nameof(Slug), IsUnique = true)]
+    [Index(nameof(Name), IsUnique = true)]
     public class Categoria
     {
 
@@ -15,8 +15,7 @@ namespace BlogApp.Entidades
         [Required, MaxLength(100), Unicode(false)]
         public required string Name { get; set; }
 
-        [Required, MaxLength(125), Unicode(false)]
-        public required string Slug { get; set; }
+       
 
         public Categoria Clone() => (Categoria)this.MemberwiseClone();
     }

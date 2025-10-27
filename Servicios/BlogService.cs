@@ -36,18 +36,11 @@ namespace BlogApp.Services
             return await _context.Categorias.OrderBy(c => c.Name).ToListAsync();
         }
 
-        public async Task<List<BlogPost>> GetPublishedPostsByCategoryAsync(string categorySlug)
+        
+        public async Task<List<BlogPost>> GetPublishedPostsByCategoryAsync(int categoryId)
         {
-            var category = await _context.Categorias
-                .FirstOrDefaultAsync(c => c.Slug == categorySlug);
-
-            if (category == null)
-            {
-                return new List<BlogPost>();
-            }
-
             return await _context.BlogPosts
-                .Where(p => p.IsPublished && p.CategoryId == category.Id)
+                .Where(p => p.IsPublished && p.CategoryId == categoryId)
                 .Include(p => p.Usuario)
                 .Include(p => p.Categoria)
                 .Include(p => p.FeaturedImage)
@@ -55,13 +48,19 @@ namespace BlogApp.Services
                 .ToListAsync();
         }
 
-        public async Task<BlogPost?> GetPostBySlugAsync(string slug)
+        
+        public async Task<BlogPost?> GetPostByIdAsync(int postId)
         {
             return await _context.BlogPosts
                .Include(p => p.Usuario)
                .Include(p => p.Categoria)
                .Include(p => p.FeaturedImage)
-               .FirstOrDefaultAsync(p => p.Slug == slug && p.IsPublished);
+               .FirstOrDefaultAsync(p => p.Id == postId && p.IsPublished);
+        }
+
+        public async Task<ApplicationUser?> GetUserByIdAsync(string userId)
+        {
+            return await _userManager.FindByIdAsync(userId);
         }
 
         public async Task<List<BlogPost>> GetPostsByUserAsync()
@@ -129,7 +128,7 @@ namespace BlogApp.Services
             }
 
             existingPost.Title = updatedPost.Title;
-            existingPost.Slug = updatedPost.Slug;
+           
             existingPost.Introduction = updatedPost.Introduction;
             existingPost.Content = updatedPost.Content;
             existingPost.CategoryId = updatedPost.CategoryId;
@@ -169,6 +168,23 @@ namespace BlogApp.Services
             return true;
         }
 
+        public async Task<bool> DeletePostByIdAsync(int postId)
+        {
+            var post = await _context.BlogPosts
+                                    .Include(p => p.Comentarios)
+                                    .FirstOrDefaultAsync(p => p.Id == postId);
+
+            if (post == null)
+            {
+                return false;
+            }
+
+            _context.Comentarios.RemoveRange(post.Comentarios);
+            _context.BlogPosts.Remove(post);
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
         public async Task DeleteAllPostsByUserAsync(string userId)
         {
             var postsToDelete = await _context.BlogPosts
@@ -177,6 +193,42 @@ namespace BlogApp.Services
 
             _context.BlogPosts.RemoveRange(postsToDelete);
             await _context.SaveChangesAsync();
+        }
+
+        public async Task<List<BlogPost>> GetAllPostsForAdminAsync()
+        {
+            var currentUser = await GetCurrentUserAsync();
+            var isAdmin = await _userManager.IsInRoleAsync(currentUser, "Admin");
+
+            if (!isAdmin)
+            {
+                throw new UnauthorizedAccessException("Acceso denegado. Se requiere el rol Admin.");
+            }
+
+            return await _context.BlogPosts
+                .Include(p => p.Usuario)
+                .Include(p => p.Categoria)
+                .Include(p => p.FeaturedImage)
+                .OrderByDescending(p => p.CreatedOn)
+                .ToListAsync();
+        }
+
+        public async Task<List<BlogPost>> GetPostsWithCommentsByUserIdAsync(string userId)
+        {
+            return await _context.BlogPosts
+                .Where(p => p.UserId == userId)
+                .Include(p => p.Comentarios)
+                .Include(p => p.Usuario)
+                .OrderByDescending(p => p.CreatedOn)
+                .ToListAsync();
+        }
+
+        public async Task<List<BlogPost>> GetPostsByUserIdAsync(string userId)
+        {
+            return await _context.BlogPosts
+                .Where(p => p.UserId == userId)
+                .OrderByDescending(p => p.CreatedOn)
+                .ToListAsync();
         }
 
         public async Task<List<ApplicationUser>> GetAllUsersAsync()
@@ -323,96 +375,5 @@ namespace BlogApp.Services
             }
             throw new InvalidOperationException("Usuario no autenticado.");
         }
-
-
-
-        public async Task<List<BlogPost>> GetAllPostsForAdminAsync()
-        {
-            var currentUser = await GetCurrentUserAsync();
-            var isAdmin = await _userManager.IsInRoleAsync(currentUser, "Admin");
-
-            if (!isAdmin)
-            {
-                throw new UnauthorizedAccessException("Acceso denegado. Se requiere el rol Admin.");
-            }
-
-          
-            return await _context.BlogPosts
-                .Include(p => p.Usuario)
-                .Include(p => p.Categoria)
-                .Include(p => p.FeaturedImage)
-                .OrderByDescending(p => p.CreatedOn)
-                .ToListAsync();
-        }
-
-        public async Task DeleteAllCommentsByUserAsync(string userId)
-        {
-            var commentsToDelete = await _context.Comentarios
-                .Where(c => c.UserId == userId)
-                .ToListAsync();
-
-            _context.Comentarios.RemoveRange(commentsToDelete);
-            await _context.SaveChangesAsync();
-        }
-
-       
-        public async Task<bool> DeletePostByIdAsync(int postId)
-        {
-            var post = await _context.BlogPosts
-                                   .Include(p => p.Comentarios) 
-                                   .FirstOrDefaultAsync(p => p.Id == postId);
-
-            if (post == null)
-            {
-                return false;
-            }
-
-           
-            _context.Comentarios.RemoveRange(post.Comentarios);
-            _context.BlogPosts.Remove(post);
-            await _context.SaveChangesAsync();
-            return true;
-        }
-
-        
-        public async Task<List<BlogPost>> GetPostsByUserIdAsync(string userId)
-        {
-            return await _context.BlogPosts
-                                 .Where(p => p.UserId == userId)
-                                 .OrderByDescending(p => p.CreatedOn)
-                                 .ToListAsync();
-        }
-
-        public async Task<ApplicationUser?> GetUserByIdAsync(string userId)
-        {
-          
-            return await _userManager.FindByIdAsync(userId);
-        }
-
-        public async Task<BlogPost?> GetPostByIdAsync(int postId)
-        {
-            
-            return await _context.BlogPosts
-               .Include(p => p.Usuario)
-               .Include(p => p.Categoria)
-               .Include(p => p.FeaturedImage)
-               .FirstOrDefaultAsync(p => p.Id == postId);
-        }
-
-        public async Task<List<BlogPost>> GetPostsWithCommentsByUserIdAsync(string userId)
-        {
-            return await _context.BlogPosts
-                                 .Where(p => p.UserId == userId)
-                                 
-                                 .Include(p => p.Comentarios)
-                                 .OrderByDescending(p => p.CreatedOn)
-                                 .ToListAsync();
-        }
-
-
-
-
-   
-
     }
 }
