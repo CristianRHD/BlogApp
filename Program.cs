@@ -2,11 +2,9 @@
 using BlogApp.Components.Account;
 using BlogApp.Data;
 using BlogApp.Services;
-using Duende.IdentityServer.AspNetIdentity;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -30,6 +28,7 @@ builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 builder.Services.AddScoped<BlogService>();
 builder.Services.AddScoped<FileService>();
+
 
 
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
@@ -57,8 +56,8 @@ var app = builder.Build();
 
 
 await IdentityInitializer.SeedRolesAndAdminAsync(
-    app.Services,
-    "\tcristianfelixreyeshernandez@gmail.com",
+   app.Services,
+   "\tcristianfelixreyeshernandez@gmail.com",
     "cristian\t");
 
 if (app.Environment.IsDevelopment())
@@ -76,7 +75,7 @@ app.UseStaticFiles();
 app.UseAntiforgery();
 
 app.MapRazorComponents<App>()
-    .AddInteractiveServerRenderMode();
+   .AddInteractiveServerRenderMode();
 
 app.MapAdditionalIdentityEndpoints();
 

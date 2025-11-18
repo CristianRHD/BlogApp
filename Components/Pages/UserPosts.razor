@@ -4,7 +4,8 @@
 @using Microsoft.AspNetCore.Authorization
 @attribute [Authorize(Roles = "Admin")]
 @rendermode InteractiveServer
-@using BlogApp.Components 
+@using BlogApp.Components
+@using Microsoft.AspNetCore.Identity
 
 @inject BlogApp.Services.BlogService _blogService
 @inject IJSRuntime JSRuntime
@@ -51,11 +52,12 @@ else
                     <tr>
                         <td>@post.Id</td>
                         <td>
-                            <a href="/postid/@post.Id">@post.Title</a>
+                          
+                            <a href="/post/@post.Id">@post.Title</a>
                         </td>
                         <td>@post.CreatedOn.ToShortDateString()</td>
                         <td>
-                           
+
                             <button class="btn btn-sm btn-danger" @onclick="() => OpenConfirmationModal(post.Id, post.Title)">
                                 Eliminar Post
                             </button>
@@ -82,7 +84,6 @@ else
     private List<BlogPost>? _userPosts;
     private ApplicationUser? _user;
 
-  
     private bool _showConfirmModal;
     private string _modalTitle = "";
     private string _modalMessage = "";
@@ -101,11 +102,12 @@ else
                 return;
             }
 
+            
             _userPosts = await _blogService.GetPostsByUserIdAsync(UserId);
         }
     }
 
-   
+
     private void OpenConfirmationModal(int postId, string postTitle)
     {
         _postIdToDelete = postId;
@@ -129,6 +131,7 @@ else
     {
         try
         {
+            
             var success = await _blogService.DeletePostByIdAsync(postId);
 
             if (success)

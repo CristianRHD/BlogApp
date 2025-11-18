@@ -36,7 +36,7 @@ namespace BlogApp.Services
             return await _context.Categorias.OrderBy(c => c.Name).ToListAsync();
         }
 
-        
+   
         public async Task<List<BlogPost>> GetPublishedPostsByCategoryAsync(int categoryId)
         {
             return await _context.BlogPosts
@@ -48,7 +48,7 @@ namespace BlogApp.Services
                 .ToListAsync();
         }
 
-        
+ 
         public async Task<BlogPost?> GetPostByIdAsync(int postId)
         {
             return await _context.BlogPosts
@@ -95,6 +95,8 @@ namespace BlogApp.Services
             var currentUser = await GetCurrentUserAsync();
             post.UserId = currentUser.Id;
             post.CreatedOn = DateTime.UtcNow;
+
+            
 
             if (post.IsPublished)
             {
@@ -150,6 +152,7 @@ namespace BlogApp.Services
             return existingPost;
         }
 
+        //funciones de administradores  
         public async Task<bool> DeletePostAsync(int postId)
         {
             var postToDelete = await _context.BlogPosts.FindAsync(postId);
@@ -342,6 +345,7 @@ namespace BlogApp.Services
 
         public async Task<Categoria> CreateCategoryAsync(Categoria categoria)
         {
+           
             _context.Categorias.Add(categoria);
             await _context.SaveChangesAsync();
             return categoria;
@@ -349,6 +353,7 @@ namespace BlogApp.Services
 
         public async Task<Categoria> UpdateCategoryAsync(Categoria updatedCategoria)
         {
+           
             _context.Update(updatedCategoria);
             await _context.SaveChangesAsync();
             return updatedCategoria;
@@ -375,5 +380,32 @@ namespace BlogApp.Services
             }
             throw new InvalidOperationException("Usuario no autenticado.");
         }
+
+
+        //public async Task<List<BlogPost>> SearchPostsAsync(string searchTerm)
+        //{
+        //    if (string.IsNullOrWhiteSpace(searchTerm))
+        //    {
+               
+        //        return await GetPublishedPostsAsync();
+        //    }
+
+            
+        //    var normalizedTerm = searchTerm.Trim().ToLower();
+
+        //    return await _context.BlogPosts
+        //        .Where(p => p.IsPublished &&
+        //                   (p.Title.ToLower().Contains(normalizedTerm) ||
+        //                    p.Introduction.ToLower().Contains(normalizedTerm) ||
+        //                    p.Content.ToLower().Contains(normalizedTerm)))
+        //        .Include(p => p.Usuario)
+        //        .Include(p => p.Categoria)
+        //        .Include(p => p.FeaturedImage)
+        //        .OrderByDescending(p => p.PublishedOn)
+        //        .ToListAsync();
+        //}
     }
+
+
+
 }

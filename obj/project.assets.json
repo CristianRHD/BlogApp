@@ -4249,9 +4249,9 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\crist\\Source\\Repos\\BlogApp\\BlogApp.csproj",
+      "projectUniqueName": "C:\\Users\\crist\\source\\repos\\BlogApp\\BlogApp.csproj",
       "projectName": "BlogApp",
-      "projectPath": "C:\\Users\\crist\\Source\\Repos\\BlogApp\\BlogApp.csproj",
+      "projectPath": "C:\\Users\\crist\\source\\repos\\BlogApp\\BlogApp.csproj",
       "packagesPath": "C:\\Users\\crist\\.nuget\\packages\\",
       "outputPath": "C:\\Users\\crist\\Source\\Repos\\BlogApp\\obj\\",
       "projectStyle": "PackageReference",

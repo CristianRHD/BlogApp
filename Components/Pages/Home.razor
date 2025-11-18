@@ -5,20 +5,21 @@
 <PageTitle>Zona Esencial - Blog</PageTitle>
 
 
-<div class="p-5 mb-5 bg-light rounded-3 hero-section">
-    <div class="container-fluid py-5 text-center">
-        <h1 class="display-4 fw-bold text-dark">Bienvenido a Zona Esencial</h1>
-        <p class="fs-5 mt-3 mb-4 text-secondary">
+
+<div class="p-5 mb-5 rounded-3 hero-section" style="background: white; border: 1px solid var(--border-light);">
+    <div class="container-fluid py-5 text-center fade-in">
+        <h1 class="display-4 fw-bold mb-4" style="color: var(--primary-dark);">Bienvenido a Zona Esencial</h1> 
+        <p class="fs-5 mt-3 mb-5" style="color: var(--text-secondary);">
             Tu fuente diaria de conocimiento y discusiones sobre temas esenciales. ¡Explora nuestras categorías y únete a la conversación!
         </p>
-        <a href="#posts" class="btn btn-primary btn-lg">Explorar Publicaciones</a>
+        <a href="#posts" class="btn btn-primary btn-lg hover-lift">Explorar Publicaciones</a>
     </div>
 </div>
 
 <div class="row" id="posts">
 
     <div class="col-md-8">
-        <h1 class="mb-5">Publicaciones Recientes</h1>
+        <h1 class="mb-5 fade-in-left" style="color: var(--primary-dark);">Publicaciones Recientes</h1> 
 
         @if (_posts == null)
         {
@@ -26,7 +27,7 @@
         }
         else if (!_posts.Any())
         {
-            
+
             @if (CategoryId.HasValue)
             {
                 <div class="alert alert-info">No hay ningún post relacionado con esta categoría.</div>
@@ -40,12 +41,12 @@
         {
             @foreach (var post in _posts)
             {
-                <div class="card post-card mb-4 card-divided">
-
+                <div class="card post-card mb-4 card-divided hover-lift fade-in">
+                    
                     <div class="card-body p-0">
-
+                        
                         <div class="row g-0">
-
+                            
                             <div class="col-md-4 post-image-wrapper">
                                 @if (post.FeaturedImage?.FilePath != null)
                                 {
@@ -57,38 +58,38 @@
                                 }
                             </div>
 
-
+                            
                             <div class="col-md-8 d-flex flex-column p-4">
 
-
+                                
                                 <div class="d-flex justify-content-between align-items-center mb-1 text-muted small">
                                     <span>Por **@(post.Usuario?.UserName ?? "Desconocido")** el @(post.PublishedOn?.ToShortDateString() ?? post.CreatedOn.ToShortDateString())</span>
                                     @if (post.Categoria != null)
                                     {
-                                        <a href="@($"/category/{post.Categoria.Id}")" class="badge text-bg-secondary text-decoration-none bg-opacity-75">@post.Categoria.Name</a>
+                                        <a href="@($"/category/{post.Categoria.Id}")" class="badge text-bg-secondary text-decoration-none">@post.Categoria.Name</a> 
                                     }
                                 </div>
 
                                 <h2 class="card-title h3 mb-2">
-                                    <a href="@($"/post/{post.Id}")" class="text-decoration-none">@post.Title</a>
+                                    <a href="@($"/post/{post.Id}")" class="text-decoration-none" style="color: var(--primary-dark);">@post.Title</a>
                                 </h2>
                                 <p class="card-text text-muted mb-3 flex-grow-1">@post.Introduction</p>
 
-
+                                
                                 <a href="@($"/post/{post.Id}")" class="btn btn-sm btn-outline-primary mt-auto align-self-start">Leer Artículo</a>
                             </div>
 
                         </div>
-
+                        
                     </div>
                 </div>
             }
         }
     </div>
 
-
-    <div class="col-md-4">
-        <div class="card category-sidebar">
+  
+    <div class="col-md-4 fade-in-right">
+        <div class="card category-sidebar shadow-md hover-lift">
             <div class="card-body">
                 <h3 class="card-title h5">Explorar Categorías</h3>
                 @if (_categories == null)
@@ -101,7 +102,9 @@
                         @foreach (var category in _categories)
                         {
                             <li class="list-group-item">
-                                <a href="@($"/category/{category.Id}")">@category.Name</a>
+                                <a href="@($"/category/{category.Id}")">
+                                    @category.Name
+                                </a>
                             </li>
                         }
                     </ul>
@@ -114,8 +117,6 @@
 @code {
     [Parameter]
     public int? CategoryId { get; set; }
-
-    // ❌ ELIMINAR: public string? CategorySlug { get; set; }
 
     private List<BlogApp.Entidades.BlogPost>? _posts;
     private List<BlogApp.Entidades.Categoria>? _categories;

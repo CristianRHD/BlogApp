@@ -1,0 +1,39 @@
+# --- Visual Studio y configuraciones locales ---
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# --- Archivos de compilación (Build) ---
+# Estos se regeneran solos, nunca deben subirse
+bin/
+obj/
+
+# --- Archivos temporales de Windows ---
+Thumbs.db
+Desktop.ini
+
+# --- Archivos de logs ---
+*.log
+
+
+
+# --- SQL Server (Archivos de datos y logs) ---
+*.mdf
+*.ldf
+
+# --- SQLite (Muy común en desarrollo local/móvil) ---
+*.db
+*.sqlite
+*.sqlite3
+*.db-shm
+*.db-wal
+
+# --- Microsoft Access (Menos común, pero por si acaso) ---
+*.mdb
+*.accdb
+
+# --- Backups y volcados de seguridad ---
+*.bak
+*.dmp

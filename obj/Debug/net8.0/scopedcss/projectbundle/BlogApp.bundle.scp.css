@@ -28,23 +28,23 @@ main[b-3vssi0as6y] {
         text-decoration: none;
     }
 
-    .top-row[b-3vssi0as6y]  a:hover, .top-row[b-3vssi0as6y]  .btn-link:hover {
-        text-decoration: underline;
-    }
+        .top-row[b-3vssi0as6y]  a:hover, .top-row[b-3vssi0as6y]  .btn-link:hover {
+            text-decoration: underline;
+        }
 
-    .top-row[b-3vssi0as6y]  a:first-child {
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
+        .top-row[b-3vssi0as6y]  a:first-child {
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
 
 @media (max-width: 640.98px) {
     .top-row[b-3vssi0as6y] {
         justify-content: space-between;
     }
 
-    .top-row[b-3vssi0as6y]  a, .top-row[b-3vssi0as6y]  .btn-link {
-        margin-left: 0;
-    }
+        .top-row[b-3vssi0as6y]  a, .top-row[b-3vssi0as6y]  .btn-link {
+            margin-left: 0;
+        }
 }
 
 @media (min-width: 641px) {
@@ -65,11 +65,11 @@ main[b-3vssi0as6y] {
         z-index: 1;
     }
 
-    .top-row.auth[b-3vssi0as6y]  a:first-child {
-        flex: 1;
-        text-align: right;
-        width: 0;
-    }
+        .top-row.auth[b-3vssi0as6y]  a:first-child {
+            flex: 1;
+            text-align: right;
+            width: 0;
+        }
 
     .top-row[b-3vssi0as6y], article[b-3vssi0as6y] {
         padding-left: 2rem !important;
@@ -104,15 +104,12 @@ main[b-3vssi0as6y] {
 
 
 .navbar.bg-dark[b-3vssi0as6y] {
-   
     background-color: var(--primary-color) !important;
 }
 
 
 .navbar-nav .nav-link[b-3vssi0as6y] {
-   
     font-weight: 500;
-  
     opacity: 0.85;
     transition: opacity 0.2s, color 0.2s;
 }
@@ -121,19 +118,18 @@ main[b-3vssi0as6y] {
         opacity: 1;
     }
 
-    
+
     .navbar-nav .nav-link.text-warning[b-3vssi0as6y] {
         color: var(--accent-color) !important;
-        font-weight: 700 !important; 
+        font-weight: 700 !important;
     }
 
         .navbar-nav .nav-link.text-warning:hover[b-3vssi0as6y] {
-            color: white !important; 
+            color: white !important;
             text-decoration: underline;
         }
 
 
 footer[b-3vssi0as6y] {
-   
     background-color: var(--primary-color) !important;
 }

@@ -60,7 +60,7 @@
                 <label for="category" class="form-label">Categoría</label>
                 @if (_categories.Any())
                 {
-                    @* ⬇️ CAMBIO CLAVE: Binding directo a CategoryId (int?) ⬇️ *@
+                    
                     <InputSelect id="category" class="form-select" @bind-Value="_postModel.CategoryId">
                         <option value="">-- Selecciona una Categoría --</option>
                         @foreach (var category in _categories)
@@ -120,7 +120,7 @@ else
     private string? fileUploadError;
     private string _saveErrorMessage = "";
 
-    // ❌ Propiedad SelectedCategoryIdString eliminada
+    
 
 
     protected override async Task OnParametersSetAsync()
@@ -136,7 +136,7 @@ else
             _postModel = new BlogApp.Entidades.BlogPost
             {
                 Title = string.Empty,
-                // Slug ha sido eliminado
+                
                 Introduction = string.Empty,
                 Content = string.Empty,
                 UserId = string.Empty,
@@ -144,7 +144,7 @@ else
             };
         }
 
-        // ❌ Lógica de inicialización de SelectedCategoryIdString eliminada
+       
     }
 
     private void HandleFileSelection(InputFileChangeEventArgs e)
@@ -158,11 +158,11 @@ else
         if (_postModel == null) return;
         _saveErrorMessage = "";
 
-        // ❌ Lógica de conversión de SelectedCategoryIdString a CategoryId eliminada
+        
 
         if (!_postModel.CategoryId.HasValue)
         {
-             // La validación del required del modelo o la validación manual debe manejar si CategoryId es 0.
+          
             _saveErrorMessage = "Debes seleccionar una categoría.";
             return;
         }
@@ -200,7 +200,7 @@ else
         }
         catch (Microsoft.EntityFrameworkCore.DbUpdateException ex)
         {
-            // Manejo de error de unicidad (si el Título fuera el campo único)
+           
             if (ex.InnerException?.Message?.Contains("duplicate key") == true || ex.InnerException?.Message?.Contains("unique index") == true)
             {
                 _saveErrorMessage = "Error: El título proporcionado ya existe. Por favor, elige uno diferente.";
