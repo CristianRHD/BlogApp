@@ -1,64 +1,60 @@
 @using Microsoft.AspNetCore.Authorization
 @using BlogApp.Components.Account.Shared
-<header class="bg-dark shadow-sm modern-header">
+
+<header class="modern-header">
     <div class="container">
-        <nav class="navbar navbar-expand-lg navbar-dark">
-    
-                <a class="navbar-brand fw-bold fs-4 me-5" href="/" style="color: var(--accent-gold);">
-                    ✨ Zona Esencial
-                </a>
-         
+        <nav class="navbar navbar-expand-lg navbar-light">
+            <a class="logo-brand" href="/">
+                <i class="bi bi-journal-richtext logo-icon" style="color: var(--accent-gold);"></i>
+                <span class="logo-text">Zona Esencial</span>
+            </a>
+
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
+
             <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav">
+                <ul class="navbar-nav mx-auto">
                     <li class="nav-item">
-                        <NavLink class="nav-link modern-nav-link" href="/" Match="NavLinkMatch.All" title="Home">
-                            <i class="bi bi-house-door-fill nav-icon"></i>
-                            <span class="d-lg-none">Home</span>
+                        <NavLink class="nav-link modern-nav-link" href="/" Match="NavLinkMatch.All">
+                            <i class="bi bi-house-door nav-icon"></i> Inicio
                         </NavLink>
                     </li>
-                   
-                </ul>
-                <ul class="navbar-nav mx-auto">
+
                     <AuthorizeView>
                         <Authorized>
                             <li class="nav-item">
-                                <NavLink class="nav-link modern-nav-link" href="/my-posts" title="Blogs">
-                                    <i class="bi bi-file-text-fill nav-icon"></i>
-                                    <span class="d-lg-none">Blogs</span>
+                                <NavLink class="nav-link modern-nav-link" href="/my-posts">
+                                    <i class="bi bi-pen nav-icon"></i> Mis Blogs
                                 </NavLink>
                             </li>
                             <li class="nav-item">
-                                <NavLink class="nav-link modern-nav-link" href="/manage-categories" title="Categorías">
-                                    <i class="bi bi-tags-fill nav-icon"></i>
-                                    <span class="d-lg-none">Categorías</span>
+                                <NavLink class="nav-link modern-nav-link" href="/manage-categories">
+                                    <i class="bi bi-tags nav-icon"></i> Categorías
                                 </NavLink>
                             </li>
                         </Authorized>
                     </AuthorizeView>
+
                     <li class="nav-item">
-                        <NavLink class="nav-link modern-nav-link" href="/about" title="Acerca de">
-                            <i class="bi bi-info-circle-fill nav-icon"></i>
-                            <span class="d-lg-none">Acerca de</span>
+                        <NavLink class="nav-link modern-nav-link" href="/about">
+                            <i class="bi bi-info-circle nav-icon"></i> Acerca de
                         </NavLink>
                     </li>
-                </ul>
-                <AuthorizeView Roles="Admin">
-                    <Authorized>
-                        <ul class="navbar-nav me-3">
+
+                    <AuthorizeView Roles="Admin">
+                        <Authorized>
                             <li class="nav-item">
-                                <NavLink class="nav-link modern-nav-link admin-link" href="/admin/users" title="Moderar Usuarios">
-                                    <i class="bi bi-shield-fill-check nav-icon"></i>
-                                    <span class="d-lg-none">Moderar Usuarios</span>
-                                    <span class="admin-badge d-none d-lg-inline-block">ADMIN</span>
+                                <NavLink class="nav-link modern-nav-link admin-link" href="/admin/users">
+                                    <i class="bi bi-shield-check nav-icon"></i> Admin
+                                    <span class="admin-badge">SOLO ADMIN</span>
                                 </NavLink>
                             </li>
-                        </ul>
-                    </Authorized>
-                </AuthorizeView>
-                <div class="ms-auto">
+                        </Authorized>
+                    </AuthorizeView>
+                </ul>
+
+                <div class="d-flex align-items-center gap-3">
                     <LoginDisplay />
                 </div>
             </div>
