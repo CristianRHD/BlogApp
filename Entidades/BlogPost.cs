@@ -5,7 +5,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace BlogApp.Entidades
 {
-    [Index(nameof(Slug), IsUnique = true)]
+   
     public class BlogPost
     {
         [Key]
@@ -14,9 +14,7 @@ namespace BlogApp.Entidades
         [Required, MaxLength(120)]
         public required string Title { get; set; }
 
-        [Required, MaxLength(150)]
-        public required string Slug { get; set; }
-
+       
 
         public int? CategoryId { get; set; }
 

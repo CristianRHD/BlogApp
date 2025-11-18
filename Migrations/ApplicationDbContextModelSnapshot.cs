@@ -131,11 +131,6 @@ namespace BlogApp.Migrations
                     b.Property<DateTime?>("PublishedOn")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("Slug")
-                        .IsRequired()
-                        .HasMaxLength(150)
-                        .HasColumnType("nvarchar(150)");
-
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasMaxLength(120)
@@ -150,9 +145,6 @@ namespace BlogApp.Migrations
                     b.HasIndex("CategoriaId");
 
                     b.HasIndex("FeaturedImageId");
-
-                    b.HasIndex("Slug")
-                        .IsUnique();
 
                     b.HasIndex("UserId");
 
@@ -173,15 +165,9 @@ namespace BlogApp.Migrations
                         .IsUnicode(false)
                         .HasColumnType("varchar(100)");
 
-                    b.Property<string>("Slug")
-                        .IsRequired()
-                        .HasMaxLength(125)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(125)");
-
                     b.HasKey("Id");
 
-                    b.HasIndex("Slug")
+                    b.HasIndex("Name")
                         .IsUnique();
 
                     b.ToTable("Categorias");

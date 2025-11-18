@@ -1,5 +1,4 @@
-﻿@page "/post/{Slug}"
-@page "/postid/{PostId:int}"
+﻿@page "/post/{PostId:int}"
 @inject BlogApp.Services.BlogService _blogService
 
 <PageTitle>@(_post?.Title ?? "Cargando...")</PageTitle>
@@ -26,7 +25,7 @@ else
 
                 <h1 class="display-5 fw-bold mb-4">@_post.Title</h1>
 
-            
+                
                 <div class="d-flex justify-content-start align-items-center mb-5 text-muted small border-bottom pb-3">
                     <span class="me-4">
                         Por **@(_post.Usuario?.UserName ?? "Desconocido")**
@@ -36,18 +35,18 @@ else
                     </span>
                     @if (_post.Categoria != null)
                     {
-                        <a href="@($"/category/{_post.Categoria.Slug}")" class="badge text-bg-primary text-decoration-none">@_post.Categoria.Name</a>
+                        <a href="@($"/category/{_post.Categoria.Id}")" class="badge text-bg-primary text-decoration-none">@_post.Categoria.Name</a>
                     }
                 </div>
 
-               
+                
                 <div class="post-content fs-5 mb-5">
                     @((MarkupString)_post.Content.ReplaceLineEndings("<br/><br/>"))
                 </div>
 
                 <hr class="my-5" />
 
-               
+                
                 @if (_post.Id > 0)
                 {
                     <PostComments BlogPostId="_post.Id" />
@@ -60,22 +59,13 @@ else
 
 @code {
     [Parameter]
-    public string? Slug { get; set; }
-
-    [Parameter]
-    public int? PostId { get; set; }
+    public int PostId { get; set; } 
 
     private BlogApp.Entidades.BlogPost? _post;
 
     protected override async Task OnInitializedAsync()
     {
-        if (PostId.HasValue)
-        {
-            _post = await _blogService.GetPostByIdAsync(PostId.Value);
-        }
-        else if (!string.IsNullOrEmpty(Slug))
-        {
-            _post = await _blogService.GetPostBySlugAsync(Slug);
-        }
+        
+        _post = await _blogService.GetPostByIdAsync(PostId);
     }
 }

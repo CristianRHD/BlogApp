@@ -4,6 +4,7 @@
 @rendermode InteractiveServer
 @using BlogApp.Entidades
 @using BlogApp.Components
+@using Microsoft.EntityFrameworkCore
 
 
 @inject BlogApp.Services.BlogService _blogService
@@ -30,7 +31,6 @@ else
             <tr>
                 <th>ID</th>
                 <th>Nombre</th>
-                <th>Slug</th>
                 <th style="width: 180px; white-space: nowrap;">Acciones</th>
             </tr>
         </thead>
@@ -40,7 +40,6 @@ else
                 <tr class="fade-in">
                     <td>@category.Id</td>
                     <td>@category.Name</td>
-                    <td>@category.Slug</td>
 
                     <td class="d-flex align-items-center justify-content-start" style="height: 60px;">
                         <div class="btn-group" role="group">
@@ -70,7 +69,7 @@ else
                         <DataAnnotationsValidator />
                         <ValidationSummary />
 
-                       
+
                         @if (!string.IsNullOrEmpty(_saveErrorMessage))
                         {
                             <div class="alert alert-danger">
@@ -83,10 +82,6 @@ else
                             <InputText id="name" class="form-control" @bind-Value="_categoryToEdit.Name" />
                         </div>
 
-                        <div class="mb-3">
-                            <label for="slug" class="form-label">Slug</label>
-                            <InputText id="slug" class="form-control" @bind-Value="_categoryToEdit.Slug" />
-                        </div>
 
                         <div class="modal-footer border-top-0 p-0 pt-3 d-flex justify-content-end">
                             <button type="button" class="btn btn-secondary me-2" @onclick="CloseModal">Cancelar</button>
@@ -109,13 +104,14 @@ else
 
 @code {
     private List<BlogApp.Entidades.Categoria>? _categories;
+    // Inicializamos sin Slug
     private bool _showModal = false;
-    private BlogApp.Entidades.Categoria _categoryToEdit = new() { Name = "", Slug = "" };
+    private BlogApp.Entidades.Categoria _categoryToEdit = new() { Name = "" };
 
     private bool _showConfirmDeleteModal = false;
     private string _deleteMessage = "";
     private int _categoryToDeleteId = 0;
-    private string _saveErrorMessage = ""; 
+    private string _saveErrorMessage = "";
 
 
     protected override async Task OnInitializedAsync()
@@ -130,15 +126,15 @@ else
 
     private void AddNewCategory()
     {
-        _categoryToEdit = new BlogApp.Entidades.Categoria { Name = "", Slug = "" };
-        _saveErrorMessage = ""; // Resetear error
+        _categoryToEdit = new BlogApp.Entidades.Categoria { Name = "" };
+        _saveErrorMessage = "";
         _showModal = true;
     }
 
     private void EditCategory(BlogApp.Entidades.Categoria category)
     {
         _categoryToEdit = category;
-        _saveErrorMessage = ""; 
+        _saveErrorMessage = "";
         _showModal = true;
     }
 
@@ -160,22 +156,20 @@ else
                 await _blogService.UpdateCategoryAsync(_categoryToEdit);
             }
 
-            
             CloseModal();
-            _saveErrorMessage = ""; 
+            _saveErrorMessage = "";
         }
         catch (Microsoft.EntityFrameworkCore.DbUpdateException ex)
         {
-            
             if (ex.InnerException?.Message?.Contains("unique index") == true || ex.InnerException?.Message?.Contains("duplicate key") == true)
             {
-                _saveErrorMessage = "Error: El Slug (URL amigable) proporcionado ya existe. Por favor, elige uno diferente.";
+                _saveErrorMessage = "Error: El nombre proporcionado ya existe. Por favor, elige uno diferente.";
             }
             else
             {
                 _saveErrorMessage = "Error de base de datos al guardar la categoría.";
             }
-            return; 
+            return;
         }
         catch (Exception)
         {

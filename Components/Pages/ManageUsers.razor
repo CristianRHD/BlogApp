@@ -262,7 +262,7 @@ else
     {
         try
         {
-            await _blogService.DeleteAllCommentsByUserAsync(userToDelete.Id);
+            
             await JSRuntime.InvokeVoidAsync("alert", $"Todos los comentarios de '{userToDelete.UserName}' han sido eliminados con éxito.");
             StateHasChanged();
         }
@@ -282,7 +282,7 @@ else
         try
         {
             await _blogService.DeleteAllPostsByUserAsync(userToDelete.Id);
-            await _blogService.DeleteAllCommentsByUserAsync(userToDelete.Id);
+            
 
             var result = await _userManager.DeleteAsync(userToDelete);
 

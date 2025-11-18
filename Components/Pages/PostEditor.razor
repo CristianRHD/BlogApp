@@ -2,9 +2,9 @@
 @page "/edit-post/{PostId:int}"
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.Forms
-@using Microsoft.EntityFrameworkCore
 @attribute [Authorize]
 @rendermode InteractiveServer
+@using Microsoft.EntityFrameworkCore 
 
 @inject BlogApp.Services.BlogService _blogService
 @inject BlogApp.Services.FileService _fileService
@@ -34,10 +34,7 @@
                 <InputText id="title" class="form-control" @bind-Value="_postModel.Title" />
             </div>
 
-            <div class="mb-3">
-                <label for="slug" class="form-label">Slug (URL amigable)</label>
-                <InputText id="slug" class="form-control" @bind-Value="_postModel.Slug" />
-            </div>
+          
 
             <div class="mb-3">
                 <label for="featuredImage" class="form-label fw-bold">Imagen Destacada (Máx 5MB)</label>
@@ -63,7 +60,8 @@
                 <label for="category" class="form-label">Categoría</label>
                 @if (_categories.Any())
                 {
-                    <InputSelect id="category" class="form-select" @bind-Value="SelectedCategoryIdString">
+                    @* ⬇️ CAMBIO CLAVE: Binding directo a CategoryId (int?) ⬇️ *@
+                    <InputSelect id="category" class="form-select" @bind-Value="_postModel.CategoryId">
                         <option value="">-- Selecciona una Categoría --</option>
                         @foreach (var category in _categories)
                         {
@@ -122,7 +120,7 @@ else
     private string? fileUploadError;
     private string _saveErrorMessage = "";
 
-    private string SelectedCategoryIdString { get; set; } = string.Empty;
+    // ❌ Propiedad SelectedCategoryIdString eliminada
 
 
     protected override async Task OnParametersSetAsync()
@@ -138,7 +136,7 @@ else
             _postModel = new BlogApp.Entidades.BlogPost
             {
                 Title = string.Empty,
-                Slug = string.Empty,
+                // Slug ha sido eliminado
                 Introduction = string.Empty,
                 Content = string.Empty,
                 UserId = string.Empty,
@@ -146,14 +144,7 @@ else
             };
         }
 
-        if (_postModel?.CategoryId.HasValue == true)
-        {
-            SelectedCategoryIdString = _postModel.CategoryId.Value.ToString();
-        }
-        else
-        {
-            SelectedCategoryIdString = string.Empty;
-        }
+        // ❌ Lógica de inicialización de SelectedCategoryIdString eliminada
     }
 
     private void HandleFileSelection(InputFileChangeEventArgs e)
@@ -167,17 +158,12 @@ else
         if (_postModel == null) return;
         _saveErrorMessage = "";
 
-        if (int.TryParse(SelectedCategoryIdString, out int selectedId) && selectedId > 0)
-        {
-            _postModel.CategoryId = selectedId;
-        }
-        else
-        {
-            _postModel.CategoryId = null;
-        }
+        // ❌ Lógica de conversión de SelectedCategoryIdString a CategoryId eliminada
 
         if (!_postModel.CategoryId.HasValue)
         {
+             // La validación del required del modelo o la validación manual debe manejar si CategoryId es 0.
+            _saveErrorMessage = "Debes seleccionar una categoría.";
             return;
         }
 
@@ -214,9 +200,10 @@ else
         }
         catch (Microsoft.EntityFrameworkCore.DbUpdateException ex)
         {
+            // Manejo de error de unicidad (si el Título fuera el campo único)
             if (ex.InnerException?.Message?.Contains("duplicate key") == true || ex.InnerException?.Message?.Contains("unique index") == true)
             {
-                _saveErrorMessage = "Error: El Slug (URL amigable) proporcionado ya existe. Por favor, elige uno diferente.";
+                _saveErrorMessage = "Error: El título proporcionado ya existe. Por favor, elige uno diferente.";
                 return;
             }
             _saveErrorMessage = "Error de base de datos al guardar la publicación.";
