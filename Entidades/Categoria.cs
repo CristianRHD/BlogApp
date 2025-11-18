@@ -15,8 +15,6 @@ namespace BlogApp.Entidades
         [Required, MaxLength(100), Unicode(false)]
         public required string Name { get; set; }
 
-       
-
         public Categoria Clone() => (Categoria)this.MemberwiseClone();
     }
 }

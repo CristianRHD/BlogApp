@@ -2,110 +2,176 @@
 @page "/category/{CategoryId:int}"
 @inject BlogApp.Services.BlogService _blogService
 
-<PageTitle>Zona Esencial - Blog</PageTitle>
+<PageTitle>Zona Esencial - Inicio</PageTitle>
 
-
-<div class="p-5 mb-5 bg-light rounded-3 hero-section">
-    <div class="container-fluid py-5 text-center">
-        <h1 class="display-4 fw-bold text-dark">Bienvenido a Zona Esencial</h1>
-        <p class="fs-5 mt-3 mb-4 text-secondary">
-            Tu fuente diaria de conocimiento y discusiones sobre temas esenciales. ¡Explora nuestras categorías y únete a la conversación!
+<section class="hero-section-modern mb-5">
+    <div class="hero-overlay"></div>
+    <div class="hero-content fade-in-up">
+        <i class="bi bi-stars hero-icon text-warning"></i>
+        <h1 class="hero-title">Bienvenido a <br><span class="text-gradient-gold">Zona Esencial</span></h1>
+        <p class="hero-subtitle">
+            Tu fuente diaria de conocimiento, ideas y discusiones sobre los temas que realmente importan.
         </p>
-        <a href="#posts" class="btn btn-primary btn-lg">Explorar Publicaciones</a>
+        <div class="hero-actions">
+            <a href="#posts" class="btn-hero-primary">
+                Explorar Blogs <i class="bi bi-arrow-down-circle ms-2"></i>
+            </a>
+            <AuthorizeView>
+                <Authorized>
+                    <a href="my-posts" class="btn-hero-secondary">
+                        Crear Post <i class="bi bi-plus-lg ms-2"></i>
+                    </a>
+                </Authorized>
+                <NotAuthorized>
+                    <a href="Account/Register" class="btn-hero-secondary">
+                        Únete Ahora
+                    </a>
+                </NotAuthorized>
+            </AuthorizeView>
+        </div>
     </div>
-</div>
+</section>
 
-<div class="row" id="posts">
+<div class="container" id="posts">
+    <div class="row g-5">
 
-    <div class="col-md-8">
-        <h1 class="mb-5">Publicaciones Recientes</h1>
+        <div class="col-lg-8">
+            <div class="section-header fade-in-left">
+                <h2 class="section-title">
+                    <i class="bi bi-fire me-2"></i> Publicaciones Recientes
+                </h2>
+                <div class="section-divider"></div>
+            </div>
 
-        @if (_posts == null)
-        {
-            <p><em>Cargando publicaciones...</em></p>
-        }
-        else if (!_posts.Any())
-        {
-            
-            @if (CategoryId.HasValue)
+            @if (_posts == null)
             {
-                <div class="alert alert-info">No hay ningún post relacionado con esta categoría.</div>
+                <div class="post-skeleton-container">
+                    <div class="post-skeleton"><div class="skeleton-image"></div><div class="skeleton-content"><div class="skeleton-title skeleton-line"></div><div class="skeleton-text skeleton-line"></div><div class="skeleton-text short skeleton-line"></div></div></div>
+                    <div class="post-skeleton"><div class="skeleton-image"></div><div class="skeleton-content"><div class="skeleton-title skeleton-line"></div><div class="skeleton-text skeleton-line"></div><div class="skeleton-text short skeleton-line"></div></div></div>
+                </div>
+            }
+            else if (!_posts.Any())
+            {
+                <div class="empty-state fade-in">
+                    <i class="bi bi-mailbox empty-state-icon"></i>
+                    <h3>¡Vaya! Está vacío por aquí</h3>
+                    <p>Aún no hay publicaciones en esta categoría. Sé el primero en escribir algo genial.</p>
+                    <AuthorizeView>
+                        <Authorized>
+                            <a href="post-editor" class="btn btn-primary">Escribir un Blog</a>
+                        </Authorized>
+                    </AuthorizeView>
+                </div>
             }
             else
             {
-                <p><em>Aún no hay publicaciones. ¡Vuelve pronto!</em></p>
-            }
-        }
-        else
-        {
-            @foreach (var post in _posts)
-            {
-                <div class="card post-card mb-4 card-divided">
-
-                    <div class="card-body p-0">
-
-                        <div class="row g-0">
-
-                            <div class="col-md-4 post-image-wrapper">
-                                @if (post.FeaturedImage?.FilePath != null)
-                                {
-                                    <a href="@($"/post/{post.Id}")">
-                                        <img src="@post.FeaturedImage.FilePath"
-                                             class="w-100 post-featured-image list-view"
-                                             alt="@post.Title" />
-                                    </a>
-                                }
-                            </div>
-
-
-                            <div class="col-md-8 d-flex flex-column p-4">
-
-
-                                <div class="d-flex justify-content-between align-items-center mb-1 text-muted small">
-                                    <span>Por **@(post.Usuario?.UserName ?? "Desconocido")** el @(post.PublishedOn?.ToShortDateString() ?? post.CreatedOn.ToShortDateString())</span>
-                                    @if (post.Categoria != null)
+                @foreach (var post in _posts)
+                {
+                    <article class="post-card-modern fade-in-up">
+                        <div class="row g-0 h-100">
+                            <div class="col-md-5 post-image-container">
+                                <a href="@($"/post/{post.Id}")" class="post-image-link">
+                                    @if (post.FeaturedImage?.FilePath != null)
                                     {
-                                        <a href="@($"/category/{post.Categoria.Id}")" class="badge text-bg-secondary text-decoration-none bg-opacity-75">@post.Categoria.Name</a>
+                                        <img src="@post.FeaturedImage.FilePath" class="post-featured-image-modern" alt="@post.Title" />
                                     }
-                                </div>
-
-                                <h2 class="card-title h3 mb-2">
-                                    <a href="@($"/post/{post.Id}")" class="text-decoration-none">@post.Title</a>
-                                </h2>
-                                <p class="card-text text-muted mb-3 flex-grow-1">@post.Introduction</p>
-
-
-                                <a href="@($"/post/{post.Id}")" class="btn btn-sm btn-outline-primary mt-auto align-self-start">Leer Artículo</a>
+                                    else
+                                    {
+                                        <div class="post-placeholder-image">
+                                            <i class="bi bi-image"></i>
+                                        </div>
+                                    }
+                                    <div class="post-image-overlay">
+                                        <i class="bi bi-eye"></i>
+                                    </div>
+                                </a>
                             </div>
+                            <div class="col-md-7">
+                                <div class="post-content-modern">
+                                    <div class="post-meta">
+                                        @if (post.Categoria != null)
+                                        {
+                                            <a href="@($"/category/{post.Categoria.Id}")" class="category-badge">
+                                                <i class="bi bi-hash"></i> @post.Categoria.Name
+                                            </a>
+                                        }
+                                        <span class="meta-item"><i class="bi bi-calendar3"></i> @(post.PublishedOn?.ToShortDateString() ?? post.CreatedOn.ToShortDateString())</span>
+                                    </div>
 
+                                    <h3 class="post-title-modern">
+                                        <a href="@($"/post/{post.Id}")">@post.Title</a>
+                                    </h3>
+
+                                    <p class="post-introduction">
+                                        @post.Introduction
+                                    </p>
+
+                                    <div class="mt-auto d-flex justify-content-between align-items-center">
+                                        <a href="@($"/post/{post.Id}")" class="btn-read-more">
+                                            Leer Artículo <i class="bi bi-arrow-right ms-2"></i>
+                                        </a>
+                                        <small class="text-muted fst-italic">Por @(post.Usuario?.UserName ?? "Anónimo")</small>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
+                    </article>
+                }
+            }
+        </div>
 
+        <div class="col-lg-4 fade-in-right">
+            <div class="sidebar-sticky" style="top: 100px;">
+
+                <div class="sidebar-card">
+                    <div class="sidebar-card-header">
+                        <i class="bi bi-grid-fill me-2"></i>
+                        <h3>Categorías</h3>
+                    </div>
+                    <div class="sidebar-card-body">
+                        @if (_categories == null)
+                        {
+                            <div class="d-flex justify-content-center p-3">
+                                <div class="spinner-border text-warning" role="status"></div>
+                            </div>
+                        }
+                        else
+                        {
+                            <ul class="category-list">
+                                <li class="category-item @(CategoryId == null ? "active" : "")">
+                                    <a href="/">
+                                        <i class="bi bi-layers"></i> Todas las categorías
+                                    </a>
+                                </li>
+                                @foreach (var category in _categories)
+                                {
+                                    <li class="category-item @(CategoryId == category.Id ? "active" : "")">
+                                        <a href="@($"/category/{category.Id}")">
+                                            <i class="bi bi-chevron-right small"></i> @category.Name
+                                        </a>
+                                    </li>
+                                }
+                            </ul>
+                        }
                     </div>
                 </div>
-            }
-        }
-    </div>
 
+                <div class="card promo-card shadow-lg text-center text-white p-4 mb-4 rounded-4">
+                    <div class="card-body">
+                        <i class="bi bi-lightning-charge-fill fs-1 text-warning mb-3"></i>
+                        <h4 class="fw-bold">¿Tienes algo que decir?</h4>
+                        <p class="small opacity-75">Comparte tus ideas con nuestra comunidad.</p>
+                        <AuthorizeView>
+                            <Authorized>
+                                <a href="my-posts" class="btn btn-light fw-bold w-100 rounded-pill text-primary">Escribir Ahora</a>
+                            </Authorized>
+                            <NotAuthorized>
+                                <a href="Account/Login" class="btn btn-outline-light fw-bold w-100 rounded-pill">Iniciar Sesión</a>
+                            </NotAuthorized>
+                        </AuthorizeView>
+                    </div>
+                </div>
 
-    <div class="col-md-4">
-        <div class="card category-sidebar">
-            <div class="card-body">
-                <h3 class="card-title h5">Explorar Categorías</h3>
-                @if (_categories == null)
-                {
-                    <p><em>Cargando...</em></p>
-                }
-                else
-                {
-                    <ul class="list-group list-group-flush">
-                        @foreach (var category in _categories)
-                        {
-                            <li class="list-group-item">
-                                <a href="@($"/category/{category.Id}")">@category.Name</a>
-                            </li>
-                        }
-                    </ul>
-                }
             </div>
         </div>
     </div>
@@ -115,13 +181,15 @@
     [Parameter]
     public int? CategoryId { get; set; }
 
-    // ❌ ELIMINAR: public string? CategorySlug { get; set; }
-
     private List<BlogApp.Entidades.BlogPost>? _posts;
     private List<BlogApp.Entidades.Categoria>? _categories;
 
     protected override async Task OnParametersSetAsync()
     {
+        
+        _posts = null;
+        StateHasChanged();
+
         _categories = await _blogService.GetCategoriesAsync();
 
         if (CategoryId.HasValue)

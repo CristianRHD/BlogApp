@@ -1,51 +1,60 @@
 @using Microsoft.AspNetCore.Authorization
 @using BlogApp.Components.Account.Shared
 
-<header class="bg-dark shadow-sm">
+<header class="modern-header">
     <div class="container">
-        <nav class="navbar navbar-expand-lg navbar-dark py-3">
-
-            <a class="navbar-brand fw-bold fs-4 me-5" href="/">Zona Esencial</a>
+        <nav class="navbar navbar-expand-lg navbar-light">
+            <a class="logo-brand" href="/">
+                <i class="bi bi-journal-richtext logo-icon" style="color: var(--accent-gold);"></i>
+                <span class="logo-text">Zona Esencial</span>
+            </a>
 
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
 
             <div class="collapse navbar-collapse" id="navbarNav">
-
-                <ul class="navbar-nav">
-                    <li class="nav-item">
-                        <NavLink class="nav-link px-3" href="/" Match="NavLinkMatch.All">Home</NavLink>
-                    </li>
-                    <li class="nav-item">
-                        <NavLink class="nav-link px-3" href="/about">Acerca de</NavLink>
-                    </li>
-                </ul>
-
                 <ul class="navbar-nav mx-auto">
+                    <li class="nav-item">
+                        <NavLink class="nav-link modern-nav-link" href="/" Match="NavLinkMatch.All">
+                            <i class="bi bi-house-door nav-icon"></i> Inicio
+                        </NavLink>
+                    </li>
+
                     <AuthorizeView>
                         <Authorized>
                             <li class="nav-item">
-                                <NavLink class="nav-link px-3" href="/my-posts">Blogs</NavLink>
+                                <NavLink class="nav-link modern-nav-link" href="/my-posts">
+                                    <i class="bi bi-pen nav-icon"></i> Mis Blogs
+                                </NavLink>
                             </li>
                             <li class="nav-item">
-                                <NavLink class="nav-link px-3" href="/manage-categories">Categorías</NavLink>
+                                <NavLink class="nav-link modern-nav-link" href="/manage-categories">
+                                    <i class="bi bi-tags nav-icon"></i> CategorÃ­as
+                                </NavLink>
+                            </li>
+                        </Authorized>
+                    </AuthorizeView>
+
+                    <li class="nav-item">
+                        <NavLink class="nav-link modern-nav-link" href="/about">
+                            <i class="bi bi-info-circle nav-icon"></i> Acerca de
+                        </NavLink>
+                    </li>
+
+                    <AuthorizeView Roles="Admin">
+                        <Authorized>
+                            <li class="nav-item">
+                                <NavLink class="nav-link modern-nav-link admin-link" href="/admin/users">
+                                    <i class="bi bi-shield-check nav-icon"></i> Admin
+                                    <span class="admin-badge">SOLO ADMIN</span>
+                                </NavLink>
                             </li>
                         </Authorized>
                     </AuthorizeView>
                 </ul>
 
-                <AuthorizeView Roles="Admin">
-                    <Authorized>
-                        <ul class="navbar-nav me-3">
-                            <li class="nav-item">
-                                <NavLink class="nav-link fw-semibold px-3" style="color: var(--accent-gold);" href="/admin/users">Moderar Usuarios</NavLink>
-                            </li>
-                        </ul>
-                    </Authorized>
-                </AuthorizeView>
-
-                <div class="ms-auto">
+                <div class="d-flex align-items-center gap-3">
                     <LoginDisplay />
                 </div>
             </div>
